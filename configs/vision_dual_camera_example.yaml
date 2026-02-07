@@ -1,0 +1,50 @@
+# Example vision config for dual-camera IBR pipeline.
+# Use with: --vision.config_path=configs/vision_dual_camera_example.yaml
+# Gripper camera -> IBR (background removal), top camera -> RAW.
+
+gripper_use_ibr: false
+top_use_ibr: false
+segmentation_model_path: "yolo26s-seg.pt"
+
+# YOLO 세그멘테이션 검출 임계값 (0.0~1.0). 이 값 이상인 예측만 마스크로 씀.
+# 값을 높이면 → 검출이 더 보수적 (손/물체만 남기고 배경 제거가 확실해짐). 너무 높으면 손이 잘려 나갈 수 있음.
+# 값을 낮추면 → 더 많은 영역이 전경으로 남음. 노이즈/배경이 섞일 수 있음.
+segmentation_confidence: 0.01
+
+# NMS(겹친 박스 제거) 시 IoU 임계값 (0.0~1.0). 겹친 검출 중 하나만 남길 때 사용.
+# 값을 높이면 → 겹침을 더 허용 (비슷한 영역 여러 개 남을 수 있음).
+# 값을 낮추면 → 겹친 검출을 더 많이 제거 (마스크가 더 단순해짐).
+segmentation_iou_threshold: 0.60
+
+# 세그멘테이션을 매 N프레임마다만 실행. 그 사이에는 이전 마스크 재사용 (성능 절약).
+# 1 = 매 프레임 실행 (가장 정확, 부하 큼). 2 = 2프레임마다, 3 = 3프레임마다 ...
+segmentation_frame_skip: 1
+
+# YOLO 추론 디바이스: "auto" | "cuda" | "cpu" | "mps"(Apple GPU).
+# "auto" = CUDA → MPS → CPU 순으로 사용 가능한 것 자동 선택.
+device: "mps"
+rerun_show_processed: true
+gripper_camera_key: "gripper"
+top_camera_key: "top"
+
+# Top 뷰 밝기 안정화: 어떤 조명에서도 비슷한 밝기로 보이도록 CLAHE 적용 (명도 채널만).
+top_brightness_stabilize: true
+top_brightness_clip_limit: 1.0   # 0~10. 높을수록 대비 강함.
+top_brightness_tile_size: 16     # 2~32. CLAHE 타일 크기 (8x8 권장).
+
+# Top 뷰 명암/대비/밝기 (과밝을 때 객체 인식 개선). CLAHE보다 먼저 적용됨.
+# top_brightness: 1.0  # 밝기 배율. 1.0=변경없음, <1=어둡게(예: 0.6), >1=밝게
+# top_contrast: 1.0    # 대비. 1.0=변경없음, >1=대비 강화, <1=대비 완화
+# top_gamma: 1.0       # 감마. 1.0=변경없음, >1=어둡게(과밝 감소, 예: 1.2~1.5), <1=밝게
+top_brightness: 0.5   # 과밝 시 0.6~0.9 로 낮춰 보기
+top_contrast: 3    # 대비 살짝 강화 시 인식 개선되는 경우 있음
+top_gamma: 1.8   # 감마 올리면 하이라이트가 눌려서 객체가 잘 보임
+
+# Gripper 뷰 밝기 안정화: IBR 적용 후 CLAHE (탑과 동일 방식).
+gripper_brightness_stabilize: true
+gripper_brightness_clip_limit: 3.0
+gripper_brightness_tile_size: 8
+# Gripper 뷰 명암/대비/밝기 (필요 시 조정)
+# gripper_brightness: 1.0
+# gripper_contrast: 1.0
+# gripper_gamma: 1.0
