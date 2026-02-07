@@ -10,6 +10,7 @@
 #   POLICY_PATH        모델 경로. 비우면 outputs/train/ 목록에서 선택
 #   ROBOT_PORT, ROBOT_ID, CAMERA_*, DISPLAY_DATA
 #   VISION_CONFIG_PATH 밝기/대비 등 vision 설정 YAML (기본: 02.record.sh 와 동일)
+#   EPISODE_TIME_S     한 에피소드 길이(초). 비우면 60초. 예: EPISODE_TIME_S=20
 #
 # demo 모드: 녹화 없음, 엔터 후 시작, Ctrl+C 할 때까지 추론 반복.
 # 녹화는 02.record.sh 사용.
@@ -32,14 +33,16 @@ export YOLO_VERBOSE="${YOLO_VERBOSE:-false}"
 
 ROBOT_PORT="${ROBOT_PORT:-/dev/tty.usbmodem5AE60810051}"
 ROBOT_ID="${ROBOT_ID:-my_follower_arm1}"
-CAMERA_TOP_INDEX="${CAMERA_TOP_INDEX:-0}"
-CAMERA_GRIPPER_INDEX="${CAMERA_GRIPPER_INDEX:-1}"
+CAMERA_TOP_INDEX="${CAMERA_TOP_INDEX:-1}"
+CAMERA_GRIPPER_INDEX="${CAMERA_GRIPPER_INDEX:-0}"
 CAMERA_WIDTH="${CAMERA_WIDTH:-1280}"
 CAMERA_HEIGHT="${CAMERA_HEIGHT:-720}"
 CAMERA_FPS="${CAMERA_FPS:-30}"
 
-DISPLAY_DATA="${DISPLAY_DATA:-true}"
+DISPLAY_DATA="${DISPLAY_DATA:-false}"
 VISION_CONFIG_PATH="${VISION_CONFIG_PATH:-configs/vision_dual_camera_example.yaml}"
+# 한 에피소드 길이(초). 데모는 이 시간마다 루프 한 번 종료 후 즉시 다음 에피소드 시작.
+EPISODE_TIME_S="${EPISODE_TIME_S:-15}"
 
 # POLICY_PATH 미설정 시 outputs/train/ 목록에서 선택
 TRAIN_DIR="outputs/train"
@@ -128,11 +131,13 @@ echo "=== LeRobot Demo (Policy only, no recording — Ctrl+C to stop) ==="
 echo "Policy:   $POLICY_PATH"
 echo "Robot:    $ROBOT_PORT  id=$ROBOT_ID"
 echo "Cameras:  top=${CAMERA_TOP_INDEX}, gripper=${CAMERA_GRIPPER_INDEX} (${CAMERA_WIDTH}x${CAMERA_HEIGHT} @ ${CAMERA_FPS}fps)"
+echo "Episode:  ${EPISODE_TIME_S}s per run (set EPISODE_TIME_S to change)"
 echo "Vision:   ${VISION_CONFIG_PATH}"
 echo ""
 
 lerobot-record \
   --demo=true \
+  --play_sounds=false \
   --robot.type=so101_follower \
   --robot.port="${ROBOT_PORT}" \
   --robot.id="${ROBOT_ID}" \
@@ -141,6 +146,7 @@ lerobot-record \
   --dataset.repo_id=woolim/eval_demo_tmp \
   --dataset.single_task="Policy demo" \
   --dataset.fps="${DATASET_FPS}" \
+  --dataset.episode_time_s="${EPISODE_TIME_S}" \
   --display_data="${DISPLAY_DATA}" \
   --vision.config_path="${VISION_CONFIG_PATH}" \
   "$@"

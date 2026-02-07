@@ -347,17 +347,19 @@ def record_loop(
 
         # Get robot observation (retry on camera read timeout so demo keeps running)
         obs = None
-        for attempt in range(5):
+        max_attempts = 5 if save_to_dataset else 999999  # demo: effectively infinite retries
+        for attempt in range(max_attempts):
             try:
                 obs = robot.get_observation()
                 break
             except TimeoutError as e:
-                if attempt < 4:
-                    logging.warning(
-                        "Camera read timeout (attempt %s/5), retrying in 0.2s: %s",
-                        attempt + 1,
-                        e,
-                    )
+                if attempt < max_attempts - 1:
+                    if attempt < 5 or (attempt + 1) % 20 == 0:
+                        logging.warning(
+                            "Camera read timeout (attempt %s), retrying in 0.2s: %s",
+                            attempt + 1,
+                            e,
+                        )
                     time.sleep(0.2)
                 else:
                     raise
