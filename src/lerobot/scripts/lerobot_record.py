@@ -345,8 +345,22 @@ def record_loop(
             events["exit_early"] = False
             break
 
-        # Get robot observation
-        obs = robot.get_observation()
+        # Get robot observation (retry on camera read timeout so demo keeps running)
+        obs = None
+        for attempt in range(5):
+            try:
+                obs = robot.get_observation()
+                break
+            except TimeoutError as e:
+                if attempt < 4:
+                    logging.warning(
+                        "Camera read timeout (attempt %s/5), retrying in 0.2s: %s",
+                        attempt + 1,
+                        e,
+                    )
+                    time.sleep(0.2)
+                else:
+                    raise
 
         # Dual-camera: gripper IBR, top RAW (same as teleop and rerun)
         if dual_camera_processor is not None and vision_config is not None:
