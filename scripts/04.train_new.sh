@@ -76,7 +76,7 @@ lerobot-train \
   --policy.push_to_hub=false \
   --output_dir="${OUTPUT_DIR}" \
   --job_name="${JOB_NAME}" \
-  --dataset.image_transforms.enable=false \
+  --dataset.image_transforms.enable=true \
   --wandb.enable=true \
   --steps=400000 \
   --batch_size=16 \
