@@ -78,11 +78,11 @@ lerobot-train \
   --job_name="${JOB_NAME}" \
   --dataset.image_transforms.enable=false \
   --wandb.enable=true \
-  --steps=30000 \
+  --steps=400000 \
   --batch_size=16 \
   --num_workers="${NUM_WORKERS}" \
   --save_checkpoint=true \
-  --save_freq=1000 \
+  --save_freq=3000 \
   --dataset.video_backend=torchcodec \
   --dataset.use_ibr_images=false \
   "$@"
